@@ -1,0 +1,4 @@
+.env
+/.idea
+/docker/dev/nginx/certs/*.crt
+/docker/dev/nginx/certs/*.key

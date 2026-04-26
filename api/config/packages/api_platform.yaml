@@ -1,0 +1,18 @@
+api_platform:
+    title: Training Pulse API
+    version: 1.0.0
+    formats:
+        json: [ 'application/json' ]
+    docs_formats:
+        json: [ 'application/json' ]
+        jsonld: [ 'application/ld+json' ]
+        jsonopenapi: [ 'application/vnd.openapi+json' ]
+        html: [ 'text/html' ]
+    defaults:
+        stateless: true
+        cache_headers:
+            vary: ['Content-Type', 'Authorization', 'Origin']
+when@dev:
+    api_platform:
+        defaults:
+            stateless: false
