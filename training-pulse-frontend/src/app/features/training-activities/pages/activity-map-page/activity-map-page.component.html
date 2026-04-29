@@ -1,0 +1,48 @@
+<section class="activity-map-page">
+  <header class="activity-map-page__header">
+    <a
+      class="activity-map-page__back-link"
+      [routerLink]="['/activities', activityId()]"
+    >
+      <mat-icon>arrow_back</mat-icon>
+      <span>Détail</span>
+    </a>
+
+    @if (activityResource.value(); as activity) {
+      <div class="activity-map-page__title">
+        {{ activity.name }}
+      </div>
+    }
+  </header>
+
+  <main class="activity-map-page__content">
+    @if (activityResource.isLoading() && !activityResource.value()) {
+      <div class="activity-map-page__state">
+        <mat-spinner diameter="36"/>
+      </div>
+    } @else if (activityResource.error()) {
+      <div class="activity-map-page__state">
+        Impossible de charger l’activité.
+      </div>
+    } @else if (activityResource.value(); as activity) {
+      @if (!activity.hasRoute) {
+        <div class="activity-map-page__state">
+          Cette activité n’a pas de route.
+        </div>
+      } @else if (routeResource.isLoading() && !routeResource.value()) {
+        <div class="activity-map-page__state">
+          <mat-spinner diameter="36"/>
+        </div>
+      } @else if (routeResource.error()) {
+        <div class="activity-map-page__state">
+          Impossible de charger la route.
+        </div>
+      } @else if (routeResource.value(); as route) {
+        <tp-activity-route-map
+          class="activity-map-page__map"
+          [route]="route"
+        />
+      }
+    }
+  </main>
+</section>

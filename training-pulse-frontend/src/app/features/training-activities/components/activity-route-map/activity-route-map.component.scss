@@ -1,0 +1,15 @@
+:host {
+  display: block;
+}
+
+.activity-route-map {
+  height: 260px;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+:host(.activity-map-page__map) .activity-route-map {
+  height: 100%;
+  border-radius: 0;
+}

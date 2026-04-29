@@ -1,0 +1,61 @@
+.activity-list-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.activity-list-page__header h1 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.15;
+}
+
+.activity-list-page__header p {
+  margin: 4px 0 0;
+  opacity: 0.72;
+}
+
+.activity-list-page__filters {
+  display: flex;
+  gap: 12px;
+}
+
+.activity-list-page__sport-filter {
+  width: 100%;
+}
+
+.activity-list-page__loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.activity-list-page__state {
+  padding: 32px 16px;
+  text-align: center;
+}
+
+.activity-list-page__state h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.activity-list-page__state p {
+  margin: 0 0 16px;
+  opacity: 0.72;
+}
+
+.activity-list-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.activity-list-page__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0 16px;
+  font-size: 14px;
+}

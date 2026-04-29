@@ -26,6 +26,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     operations: [
         new GetCollection(
+            normalizationContext: [
+                'skip_null_values' => false,
+            ],
             security: "is_granted('" . Role::ROLE_USER . "')",
             output: TrainingActivitySummaryDto::class,
             provider: CollectionProvider::class,
@@ -46,6 +49,11 @@ use Symfony\Component\Validator\Constraints as Assert;
                     ],
                     castToArray: true,
                 ),
+                'sportType' => new QueryParameter(
+                    schema: ['type' => 'string'],
+                    filter: new ExactFilter(),
+                    property: 'sportType',
+                ),
 
             ]
         ),
@@ -53,12 +61,15 @@ use Symfony\Component\Validator\Constraints as Assert;
             uriVariables: [
                 'id' => new Link(fromClass: TrainingActivity::class, identifiers: ['publicId']),
             ],
+            normalizationContext: [
+                'skip_null_values' => false,
+            ],
             security: "is_granted('" . Role::ROLE_USER . "')",
             output: TrainingActivityDetailDto::class,
-            provider: ItemProvider::class
+            provider: ItemProvider::class,
         ),
         new Get(
-            uriTemplate: '/training_activities/{id}/routes',
+            uriTemplate: '/training_activities/{id}/route',
             uriVariables: [
                 'id' => new Link(fromClass: TrainingActivity::class, identifiers: ['publicId']),
             ],

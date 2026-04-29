@@ -2,6 +2,7 @@
 
 namespace App\Dto\TrainingActivity;
 
+use App\Enum\ActivitySource;
 use App\Enum\SportType;
 
 final class TrainingActivityDetailDto
@@ -12,7 +13,7 @@ final class TrainingActivityDetailDto
 
     public SportType $sportType;
 
-    public string $source;
+    public ActivitySource $source;
 
     public string $externalId;
 

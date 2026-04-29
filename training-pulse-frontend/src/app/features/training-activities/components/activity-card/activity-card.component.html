@@ -1,0 +1,47 @@
+<a class="activity-card-link" [routerLink]="['/activities', activity().id]">
+  <mat-card class="activity-card">
+    <mat-card-content>
+      <div class="activity-card__header">
+        <div>
+          <div class="activity-card__sport">
+            {{ sportTypeLabel(activity().sportType) }}
+          </div>
+
+          <h2 class="activity-card__title">
+            {{ activity().name }}
+          </h2>
+        </div>
+
+        @if (activity().hasRoute) {
+          <mat-icon class="activity-card__route-icon">map</mat-icon>
+        }
+      </div>
+
+      <div class="activity-card__date">
+        {{ getDisplayDate(activity()) | date: 'dd.MM.yyyy HH:mm' }}
+      </div>
+
+      <div class="activity-card__metrics">
+        @if (activity().distanceM !== null) {
+          <span>{{ activity().distanceM | tpDistance }}</span>
+        }
+
+        @if (activity().movingTimeS !== null) {
+          <span>{{ activity().movingTimeS | tpDuration }}</span>
+        }
+
+        @if (activity().elevationGainM !== null) {
+          <span>{{ activity().elevationGainM | tpElevation }}</span>
+        }
+
+        @if (activity().averageHeartrate !== null) {
+          <span>{{ activity().averageHeartrate | tpHeartrate }}</span>
+        }
+
+        @if (activity().averageWatts !== null) {
+          <span>{{ activity().averageWatts | tpPower }}</span>
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
+</a>

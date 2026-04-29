@@ -30,7 +30,7 @@ final readonly class TrainingActivityToDetailDtoMapper implements CustomMapperIn
         $dto->name = $source->getName();
         $dto->sportType = $source->getSportType();
 
-        $dto->source = $source->getSource()->value;
+        $dto->source = $source->getSource();
         $dto->externalId = $source->getExternalId();
 
         // Instant absolu, toujours en UTC.

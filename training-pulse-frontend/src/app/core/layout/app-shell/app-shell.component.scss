@@ -1,0 +1,27 @@
+.app-shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #f7f7f7;
+}
+
+.app-shell__header {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  background: white;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.app-shell__title {
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.app-shell__main {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+  padding-bottom: 80px;
+}

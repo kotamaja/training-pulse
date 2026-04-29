@@ -1,0 +1,52 @@
+.activity-card-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.activity-card {
+  border-radius: 16px;
+}
+
+.activity-card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.activity-card__sport {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.72;
+  margin-bottom: 4px;
+}
+
+.activity-card__title {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.activity-card__route-icon {
+  opacity: 0.64;
+}
+
+.activity-card__date {
+  margin-top: 8px;
+  font-size: 13px;
+  opacity: 0.72;
+}
+
+.activity-card__metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+.activity-card__metrics span {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.06);
+}

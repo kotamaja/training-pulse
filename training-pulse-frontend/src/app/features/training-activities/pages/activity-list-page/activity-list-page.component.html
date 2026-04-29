@@ -1,0 +1,85 @@
+<section class="activity-list-page">
+  <header class="activity-list-page__header">
+    <div>
+      <h1>Activités</h1>
+      <p>Ton journal d’entraînement.</p>
+    </div>
+  </header>
+
+  <section class="activity-list-page__filters">
+    <mat-form-field appearance="outline" class="activity-list-page__sport-filter">
+      <mat-label>Sport</mat-label>
+
+      <mat-select
+        [value]="sportType()"
+        (valueChange)="onSportTypeChange($event)"
+      >
+        <mat-option [value]="null">
+          Tous les sports
+        </mat-option>
+
+        @for (sportTypeItem of sportTypes; track sportTypeItem) {
+          <mat-option [value]="sportTypeItem">
+            {{ sportTypeLabel(sportTypeItem) }}
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </section>
+
+  @if (activitiesResource.isLoading() && !activitiesResource.value()) {
+    <div class="activity-list-page__loading">
+      <mat-spinner diameter="36"/>
+    </div>
+  } @else if (activitiesResource.error()) {
+    <div class="activity-list-page__state">
+      <h2>Impossible de charger les activités</h2>
+      <p>Vérifie que l’API est disponible, puis réessaie.</p>
+
+      <button
+        matButton="filled"
+        type="button"
+        (click)="activitiesResource.reload()"
+      >
+        Réessayer
+      </button>
+    </div>
+  } @else if (activitiesResource.value(); as collection) {
+    @if (collection.items.length === 0) {
+      <div class="activity-list-page__state">
+        <h2>Aucune activité</h2>
+        <p>Les activités importées apparaîtront ici.</p>
+      </div>
+    } @else {
+      <div class="activity-list-page__list">
+        @for (activity of collection.items; track activity.id) {
+          <tp-activity-card [activity]="activity"/>
+        }
+      </div>
+
+      <footer class="activity-list-page__pagination">
+        <button
+          matButton="outlined"
+          type="button"
+          [disabled]="collection.pagination.page <= 1 || activitiesResource.isLoading()"
+          (click)="previousPage()"
+        >
+          Précédent
+        </button>
+
+        <span>
+          Page {{ collection.pagination.page }} / {{ collection.pagination.lastPage }}
+        </span>
+
+        <button
+          matButton="outlined"
+          type="button"
+          [disabled]="collection.pagination.page >= collection.pagination.lastPage || activitiesResource.isLoading()"
+          (click)="nextPage()"
+        >
+          Suivant
+        </button>
+      </footer>
+    }
+  }
+</section>

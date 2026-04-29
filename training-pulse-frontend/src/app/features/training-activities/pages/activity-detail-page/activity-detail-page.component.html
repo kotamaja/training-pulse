@@ -1,0 +1,194 @@
+<section class="activity-detail-page">
+  <a
+    routerLink="/activities"
+    class="activity-detail-page__back-link"
+  >
+    <mat-icon>arrow_back</mat-icon>
+    <span>Activités</span>
+  </a>
+
+  @if (activityResource.isLoading() && !activityResource.value()) {
+    <div class="activity-detail-page__loading">
+      <mat-spinner diameter="36"/>
+    </div>
+  } @else if (activityResource.error()) {
+    <div class="activity-detail-page__state">
+      <h1>Impossible de charger l’activité</h1>
+      <p>Vérifie que l’API est disponible, puis réessaie.</p>
+
+      <button
+        matButton="filled"
+        type="button"
+        (click)="activityResource.reload()"
+      >
+        Réessayer
+      </button>
+    </div>
+  } @else if (activityResource.value(); as activity) {
+    <header class="activity-detail-page__header">
+      <div class="activity-detail-page__sport">
+        {{ sportTypeLabel(activity.sportType) }}
+      </div>
+
+      <h1>{{ activity.name }}</h1>
+
+      <div class="activity-detail-page__date">
+        {{ getDisplayDate(activity) | date: 'dd.MM.yyyy HH:mm' }}
+      </div>
+    </header>
+
+    <section class="activity-detail-page__summary-grid">
+      <article class="metric-card">
+        <span class="metric-card__label">Distance</span>
+        <strong class="metric-card__value">
+          {{ activity.distanceM | tpDistance }}
+        </strong>
+      </article>
+
+      <article class="metric-card">
+        <span class="metric-card__label">Temps en mouvement</span>
+        <strong class="metric-card__value">
+          {{ activity.movingTimeS | tpDuration }}
+        </strong>
+      </article>
+
+      <article class="metric-card">
+        <span class="metric-card__label">Dénivelé</span>
+        <strong class="metric-card__value">
+          {{ activity.elevationGainM | tpElevation }}
+        </strong>
+      </article>
+
+      <article class="metric-card">
+        <span class="metric-card__label">Fréquence cardiaque</span>
+        <strong class="metric-card__value">
+          {{ activity.averageHeartrate | tpHeartrate }}
+        </strong>
+      </article>
+    </section>
+
+    <section class="activity-detail-section">
+      <h2>Métriques</h2>
+
+      <dl class="metrics-list">
+        <div>
+          <dt>Temps écoulé</dt>
+          <dd>{{ activity.elapsedTimeS | tpDuration }}</dd>
+        </div>
+
+        <div>
+          <dt>Vitesse moyenne</dt>
+          <dd>
+            @if (activity.averageSpeedMps !== null) {
+              {{ activity.averageSpeedMps | tpSpeed }}
+            } @else {
+              —
+            }
+          </dd>
+        </div>
+
+        <div>
+          <dt>Vitesse max</dt>
+          <dd>
+            @if (activity.maxSpeedMps !== null) {
+              {{ activity.maxSpeedMps | tpSpeed }}
+            } @else {
+              —
+            }
+          </dd>
+        </div>
+
+        <div>
+          <dt>FC moyenne</dt>
+          <dd>{{ activity.averageHeartrate | tpHeartrate }}</dd>
+        </div>
+
+        <div>
+          <dt>FC max</dt>
+          <dd>{{ activity.maxHeartrate | tpHeartrate }}</dd>
+        </div>
+
+        <div>
+          <dt>Puissance moyenne</dt>
+          <dd>{{ activity.averageWatts | tpPower }}</dd>
+        </div>
+
+        <div>
+          <dt>Puissance max</dt>
+          <dd>{{ activity.maxWatts | tpPower }}</dd>
+        </div>
+
+        <div>
+          <dt>Calories</dt>
+          <dd>
+            @if (activity.calories !== null) {
+              {{ activity.calories | number: '1.0-0' }} kcal
+            } @else {
+              —
+            }
+          </dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="activity-detail-section">
+      <div class="activity-detail-section__header">
+        <h2>Carte</h2>
+
+        @if (activity.hasRoute) {
+          <a
+            matButton="outlined"
+            [routerLink]="['/activities', activity.id, 'map']"
+          >
+            Voir en grand
+          </a>
+        }
+      </div>
+
+      @if (activity.hasRoute) {
+        @if (routeResource.isLoading() && !routeResource.value()) {
+          <div class="activity-detail-page__map-placeholder">
+            Chargement de la carte…
+          </div>
+        } @else if (routeResource.error()) {
+          <div class="activity-detail-page__map-placeholder">
+            Impossible de charger la route.
+          </div>
+        } @else if (routeResource.value(); as route) {
+          <tp-activity-route-map [route]="route"/>
+        }
+      } @else {
+        <p class="activity-detail-page__muted">
+          Cette activité n’a pas de route.
+        </p>
+      }
+    </section>
+
+    <section class="activity-detail-section">
+      <h2>Source</h2>
+
+      <dl class="metrics-list">
+        <div>
+          <dt>Source</dt>
+          <dd>{{ formatSource(activity.source) }}</dd>
+        </div>
+
+        <div>
+          <dt>ID externe</dt>
+          <dd>{{ activity.externalId }}</dd>
+        </div>
+
+        <div>
+          <dt>Synchronisé le</dt>
+          <dd>
+            @if (activity.syncedAt !== null) {
+              {{ activity.syncedAt | date: 'dd.MM.yyyy HH:mm' }}
+            } @else {
+              —
+            }
+          </dd>
+        </div>
+      </dl>
+    </section>
+  }
+</section>
