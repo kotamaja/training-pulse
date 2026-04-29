@@ -1,0 +1,179 @@
+<?php
+
+namespace App\Command\Strava;
+
+use App\Entity\User;
+use App\Enum\ActivitySource;
+use App\Integration\Strava\StravaActivitySyncService;
+use App\Repository\AthleteExternalAccountRepository;
+use App\Repository\UserRepository;
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
+
+#[AsCommand(
+    name: 'app:strava:sync',
+    description: 'Synchronize Strava activities for the connected dev user account.',
+)]
+final class StravaSyncCommand extends Command
+{
+    private const DEV_USER_EMAIL = 'dev@trainingpulse.local';
+
+    public function __construct(
+        private readonly UserRepository $userRepository,
+        private readonly AthleteExternalAccountRepository $externalAccountRepository,
+        private readonly StravaActivitySyncService $syncService,
+    ) {
+        parent::__construct();
+    }
+
+    protected function configure(): void
+    {
+        $this
+            ->addOption(
+                'page',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Strava page number.',
+                1,
+            )
+            ->addOption(
+                'per-page',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Number of activities per page.',
+                30,
+            )
+            ->addOption(
+                'after',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Only return activities after this date, format YYYY-MM-DD.',
+            )
+            ->addOption(
+                'before',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Only return activities before this date, format YYYY-MM-DD.',
+            );
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $io = new SymfonyStyle($input, $output);
+
+        $page = max(1, (int) $input->getOption('page'));
+        $perPage = min(100, max(1, (int) $input->getOption('per-page')));
+
+        $after = $this->parseDateOption($input->getOption('after'), 'after');
+        $before = $this->parseDateOption($input->getOption('before'), 'before');
+
+        $user = $this->findDevUser();
+        $athlete = $user->requireAthlete();
+
+        $account = $this->externalAccountRepository->findOneForAthleteAndProvider(
+            athlete: $athlete,
+            provider: ActivitySource::Strava,
+        );
+
+        if ($account === null) {
+            $io->error(sprintf(
+                'No Strava external account found for athlete "%s".',
+                $athlete->getDisplayName(),
+            ));
+
+            return Command::FAILURE;
+        }
+
+        $io->title('Strava activity synchronization');
+
+        $io->definitionList(
+            ['TrainingPulse user' => $user->getEmail()],
+            ['TrainingPulse athlete' => $athlete->getDisplayName()],
+            ['Strava account id' => $account->getProviderAccountId()],
+            ['Page' => (string) $page],
+            ['Per page' => (string) $perPage],
+            ['After' => $after?->format('Y-m-d') ?? 'n/a'],
+            ['Before' => $before?->format('Y-m-d') ?? 'n/a'],
+        );
+
+        $report = $this->syncService->syncAccount(
+            account: $account,
+            page: $page,
+            perPage: $perPage,
+            after: $after,
+            before: $before,
+        );
+
+        $io->success('Strava synchronization completed.');
+
+        $io->definitionList(
+            ['Fetched' => (string) $report->fetched],
+            ['Created' => (string) $report->created],
+            ['Updated' => (string) $report->updated],
+            ['Unchanged' => (string) $report->unchanged],
+            ['Failed' => (string) $report->failed],
+        );
+
+        if ($report->errors !== []) {
+            $io->section('Errors');
+
+            foreach ($report->errors as $error) {
+                $io->writeln('- ' . $error);
+            }
+
+            return Command::FAILURE;
+        }
+
+        return Command::SUCCESS;
+    }
+
+    private function findDevUser(): User
+    {
+        $user = $this->userRepository->findOneBy([
+            'email' => self::DEV_USER_EMAIL,
+        ]);
+
+        if (!$user instanceof User) {
+            throw new \RuntimeException(sprintf(
+                'Dev user "%s" was not found.',
+                self::DEV_USER_EMAIL,
+            ));
+        }
+
+        return $user;
+    }
+
+    private function parseDateOption(mixed $value, string $name): ?\DateTimeImmutable
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (!is_string($value)) {
+            throw new \InvalidArgumentException(sprintf(
+                'Option "%s" must be a string.',
+                $name,
+            ));
+        }
+
+        $date = \DateTimeImmutable::createFromFormat(
+            '!Y-m-d',
+            $value,
+            new \DateTimeZone('UTC'),
+        );
+
+        if (!$date instanceof \DateTimeImmutable) {
+            throw new \InvalidArgumentException(sprintf(
+                'Invalid "%s" date "%s". Expected YYYY-MM-DD.',
+                $name,
+                $value,
+            ));
+        }
+
+        return $date;
+    }
+}

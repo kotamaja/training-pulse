@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\Athlete;
 use App\Entity\TrainingActivity;
+use App\Enum\ActivitySource;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -14,6 +16,16 @@ class TrainingActivityRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, TrainingActivity::class);
+    }
+
+
+    public function findOneByExternalIdentityForAthlete(Athlete $athlete, ActivitySource $source, string $externalId): ?TrainingActivity
+    {
+        return $this->findOneBy([
+            'athlete' => $athlete,
+            'source' => $source,
+            'externalId' => $externalId,
+        ]);
     }
 
     //    /**

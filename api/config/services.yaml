@@ -8,6 +8,11 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
 
+    app.strava.client_id: '%env(STRAVA_CLIENT_ID)%'
+    app.strava.client_secret: '%env(STRAVA_CLIENT_SECRET)%'
+    app.strava.redirect_url: '%env(STRAVA_REDIRECT_URI)%'
+
+
 services:
     # default configuration for services in *this* file
     _defaults:

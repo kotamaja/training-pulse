@@ -14,6 +14,8 @@ doctrine:
             polygon: LongitudeOne\Spatial\DBAL\Types\Geometry\PolygonType
             linestring: LongitudeOne\Spatial\DBAL\Types\Geometry\LineStringType
 
+            utc_datetime_immutable: App\Doctrine\Type\UtcDateTimeImmutableType
+
     orm:
         validate_xml_mapping: true
         naming_strategy: doctrine.orm.naming_strategy.underscore

@@ -5,7 +5,6 @@ namespace App\State\Custom;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Dto\Me\MeDetailDto;
-use App\Dto\User\MeItemDto;
 use App\Entity\User;
 use App\Mapper\MapperRegistry;
 use Symfony\Bundle\SecurityBundle\Security;

@@ -27,6 +27,10 @@ services:
       COMPOSER_HOME: /tmp/composer
       XDEBUG_MODE: ${XDEBUG_MODE:-off}
 
+      STRAVA_CLIENT_ID: ${STRAVA_CLIENT_ID}
+      STRAVA_CLIENT_SECRET: ${STRAVA_CLIENT_SECRET}
+      STRAVA_REDIRECT_URI: ${STRAVA_REDIRECT_URI}
+
     user: "${UID:-1000}:${GID:-1000}"
 
   nginx:

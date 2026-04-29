@@ -40,10 +40,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: Athlete::class, cascade: ['persist', 'remove'])]
     private ?Athlete $athlete = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'utc_datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: 'utc_datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
     public function __construct(string $email)

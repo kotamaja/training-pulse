@@ -118,7 +118,7 @@ class TrainingActivity
     #[ORM\Column(enumType: SportType::class)]
     private SportType $sportType;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'utc_datetime_immutable')]
     private \DateTimeImmutable $startedAt;
 
     #[ORM\Column(nullable: true)]
@@ -172,13 +172,13 @@ class TrainingActivity
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $rawExternalDetail = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: 'utc_datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $syncedAt = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'utc_datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: 'utc_datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
     public function __construct(
