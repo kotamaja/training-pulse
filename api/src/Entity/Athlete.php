@@ -56,7 +56,7 @@ class Athlete
     private Collection $trainingActivities;
 
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'utc_datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(nullable: true)]
@@ -89,6 +89,13 @@ class Athlete
     {
         return $this->user;
     }
+
+    public function setUser(User $user): void
+    {
+        $this->user = $user;
+    }
+
+
 
     public function getDisplayName(): string
     {
@@ -194,6 +201,7 @@ class Athlete
     {
         $this->updatedAt = $updatedAt;
     }
+
 
 
 

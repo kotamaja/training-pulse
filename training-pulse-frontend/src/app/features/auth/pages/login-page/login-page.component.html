@@ -1,4 +1,66 @@
-<section class="page">
-  <h1>Connexion</h1>
-  <p>Formulaire de connexion à venir.</p>
+
+<section class="login-page">
+  <div class="login-card">
+    <h1 class="login-card__title">Connexion</h1>
+
+    <p class="login-card__subtitle">
+      Connecte-toi à TrainingPulse pour accéder à tes activités.
+    </p>
+
+    <form class="login-form" [formRoot]="loginForm">
+      <div class="login-form__field">
+        <label for="email">Email</label>
+
+        <input
+          id="email"
+          type="email"
+          autocomplete="email"
+          placeholder="yves@example.com"
+          [formField]="loginForm.email"
+        />
+
+        @if (emailInvalid()) {
+          <p class="login-form__error">
+            {{ emailError() }}
+          </p>
+        }
+      </div>
+
+      <div class="login-form__field">
+        <label for="password">Mot de passe</label>
+
+        <input
+          id="password"
+          type="password"
+          autocomplete="current-password"
+          placeholder="Mot de passe"
+          [formField]="loginForm.password"
+        />
+
+        @if (passwordInvalid()) {
+          <p class="login-form__error">
+            {{ passwordError() }}
+          </p>
+        }
+      </div>
+
+      @if (authSession.error()) {
+        <p class="login-form__global-error">
+          {{ authSession.error() }}
+        </p>
+      }
+
+      <button
+        class="login-form__submit"
+        type="submit"
+        [disabled]="authSession.loading() || loginForm().submitting()"
+      >
+        @if (authSession.loading() || loginForm().submitting()) {
+          Connexion...
+        } @else {
+          Se connecter
+        }
+      </button>
+    </form>
+  </div>
 </section>

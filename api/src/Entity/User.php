@@ -35,7 +35,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private bool $enabled = true;
 
     #[ORM\Column(nullable: true)]
-    private ?string $password = null;
+    private ?string $password = null;  // Null for users authenticated only through external providers.
 
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: Athlete::class, cascade: ['persist', 'remove'])]
     private ?Athlete $athlete = null;
@@ -50,7 +50,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->publicId = (string) new Ulid();
         $this->email = $email;
-        $this->roles = ['ROLE_USER'];
+        $this->roles = [];
         $this->createdAt = new \DateTimeImmutable();
     }
 
@@ -113,11 +113,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getRoles(): array
     {
-        $roles = $this->roles;
-
-        $roles[] = 'ROLE_USER';
-
-        return array_values(array_unique($roles));
+        return array_values(array_unique([...$this->roles, 'ROLE_USER']));
     }
 
     /**
@@ -125,6 +121,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function setRoles(array $roles): void
     {
+        foreach ($roles as $role) {
+            if (!is_string($role) || $role === '') {
+                throw new \InvalidArgumentException('Roles must be non-empty strings.');
+            }
+        }
+
         $this->roles = array_values(array_unique($roles));
         $this->updatedAt = new \DateTimeImmutable();
     }
@@ -154,7 +156,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setAthlete(?Athlete $athlete): void
     {
+        if ($this->athlete === $athlete) {
+            return;
+        }
+
         $this->athlete = $athlete;
+
+        if ($athlete !== null && $athlete->getUser() !== $this) {
+            $athlete->setUser($this);
+        }
+
         $this->updatedAt = new \DateTimeImmutable();
     }
 

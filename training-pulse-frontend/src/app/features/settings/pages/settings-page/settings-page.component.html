@@ -1,4 +1,34 @@
-<section class="page">
+<section class="settings-page">
   <h1>Réglages</h1>
-  <p>Préférences et déconnexion à venir.</p>
+
+  <div class="settings-card">
+    <h2>Compte</h2>
+
+    @if (authSession.user(); as user) {
+      <div class="settings-account">
+        <div class="settings-account__label">Connecté en tant que</div>
+        <div class="settings-account__email">{{ user.email }}</div>
+      </div>
+    }
+
+    @if (authSession.athlete(); as athlete) {
+      <div class="settings-account">
+        <div class="settings-account__label">Profil sportif</div>
+        <div class="settings-account__email">{{ athlete.displayName }}</div>
+      </div>
+    }
+
+    <button
+      type="button"
+      class="settings-logout-button"
+      [disabled]="authSession.loading()"
+      (click)="logout()"
+    >
+      @if (authSession.loading()) {
+        Déconnexion...
+      } @else {
+        Se déconnecter
+      }
+    </button>
+  </div>
 </section>

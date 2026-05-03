@@ -12,6 +12,9 @@ use App\State\Custom\MeProvider;
     operations: [
         new Get(
             uriTemplate: '/me',
+            normalizationContext: [
+                'skip_null_values' => false,
+            ],
             security: "is_granted('" . Role::ROLE_USER . "')",
             output: MeDetailDto::class,
             provider: MeProvider::class,
