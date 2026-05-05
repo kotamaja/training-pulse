@@ -31,6 +31,10 @@ services:
       STRAVA_CLIENT_SECRET: ${STRAVA_CLIENT_SECRET}
       STRAVA_REDIRECT_URI: ${STRAVA_REDIRECT_URI}
 
+      JWT_SECRET_KEY: '%kernel.project_dir%/config/jwt/private.pem'
+      JWT_PUBLIC_KEY: '%kernel.project_dir%/config/jwt/public.pem'
+      JWT_PASSPHRASE: '${JWT_PASSPHRASE:?JWT_PASSPHRASE is required}'
+
     user: "${UID:-1000}:${GID:-1000}"
 
   nginx:

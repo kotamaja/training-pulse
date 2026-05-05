@@ -4,27 +4,26 @@ namespace App\Security;
 
 use App\Dto\Me\MeDetailDtoFactory;
 use App\Entity\User;
-use JetBrains\PhpStorm\Deprecated;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
-
-#[Deprecated]
-final class JsonLoginSuccessHandler implements AuthenticationSuccessHandlerInterface
+final readonly class JsonJwtLoginSuccessHandler implements AuthenticationSuccessHandlerInterface
 {
-
     public function __construct(
+        private JWTTokenManagerInterface $jwtTokenManager,
         private MeDetailDtoFactory $meDetailDtoFactory,
         private SerializerInterface $serializer,
     ) {
     }
 
-    public function onAuthenticationSuccess(Request        $request,
-                                            TokenInterface $token): JsonResponse
-    {
+    public function onAuthenticationSuccess(
+        Request $request,
+        TokenInterface $token,
+    ): JsonResponse {
         $user = $token->getUser();
 
         if (!$user instanceof User) {
@@ -36,17 +35,17 @@ final class JsonLoginSuccessHandler implements AuthenticationSuccessHandlerInter
             ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
 
+        $payload = [
+            'token' => $this->jwtTokenManager->create($user),
+            'session' => $this->meDetailDtoFactory->fromUser($user),
+        ];
 
-        $json = $this->serializer->serialize(
-            $this->meDetailDtoFactory->fromUser($user),
-            'json',
-        );
+        $json = $this->serializer->serialize($payload, 'json');
 
         return new JsonResponse(
             data: $json,
             status: JsonResponse::HTTP_OK,
             json: true,
         );
-
     }
 }

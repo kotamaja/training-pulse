@@ -81,7 +81,7 @@ CREATE TABLE app_user (
     id INT AUTO_INCREMENT NOT NULL,
     public_id VARCHAR(26) NOT NULL,
     email VARCHAR(180) NOT NULL,
-    username VARCHAR(180) DEFAULT NULL,
+    username VARCHAR(180) NOT NULL,
     roles JSON NOT NULL,
     enabled TINYINT(1) NOT NULL,
     password VARCHAR(255) DEFAULT NULL,

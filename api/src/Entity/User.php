@@ -25,7 +25,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180)]
     private string $email;
 
-    #[ORM\Column(length: 180, nullable: true)]
+    #[ORM\Column(length: 180, nullable: false)]
     private ?string $username = null;
 
     #[ORM\Column(type: 'json')]
@@ -46,10 +46,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'utc_datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    public function __construct(string $email)
+    public function __construct(string $email,?string $username = null)
     {
         $this->publicId = (string) new Ulid();
         $this->email = $email;
+        $this->username = $username ?? $email;
         $this->roles = [];
         $this->createdAt = new \DateTimeImmutable();
     }
@@ -69,24 +70,32 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->email;
     }
 
-
     public function setEmail(string $email): void
     {
+        $oldEmail = $this->email;
+
         $this->email = $email;
+
+        if ($this->username === $oldEmail) {
+            $this->username = $email;
+        }
+
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    public function getUsername(): ?string
+    public function getUsername(): string
     {
         return $this->username;
     }
 
     public function setUsername(?string $username): void
     {
-        $this->username = $username;
+        $this->username = $username !== null && trim($username) !== ''
+            ? trim($username)
+            : $this->email;
+
         $this->updatedAt = new \DateTimeImmutable();
     }
-
 
     /**
      * Symfony Security identifier.

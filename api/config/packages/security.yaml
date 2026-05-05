@@ -16,35 +16,37 @@ security:
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
 
-        main:
-            lazy: true
+        login:
+            pattern: ^/api/v1/auth/login$
+            stateless: true
             provider: app_user_provider
-            stateless: false
             user_checker: App\Security\UserChecker
-            entry_point: App\Security\JsonAuthenticationEntryPoint
 
             json_login:
-                check_path: api_v1_auth_login
+#                check_path: api_v1_auth_login
+                check_path: /api/v1/auth/login
                 username_path: email
                 password_path: password
-                success_handler: App\Security\JsonLoginSuccessHandler
+                success_handler: App\Security\JsonJwtLoginSuccessHandler
                 failure_handler: App\Security\JsonLoginFailureHandler
 
-            logout:
-                path: api_v1_auth_logout
+        api:
+            pattern: ^/api
+            stateless: true
+            provider: app_user_provider
+            entry_point: App\Security\JsonAuthenticationEntryPoint
+            jwt: ~
 
     # Note: Only the *first* matching rule is applied
     access_control:
         - { path: ^/api/v1/auth/login$, roles: PUBLIC_ACCESS }
-        - { path: ^/api/v1/auth/logout$, roles: PUBLIC_ACCESS }
-        - { path: ^/api, roles: ROLE_USER }
+        - { path: ^/api/v1, roles: ROLE_USER }
 
-#when@dev:
-#    security:
-#        firewalls:
-#            main:
-#                stateless: false
-#                custom_authenticators:
-#                    - App\Security\DevAuthenticator
-
-
+when@test:
+    security:
+        password_hashers:
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+                algorithm: auto
+                cost: 4
+                time_cost: 3
+                memory_cost: 10
