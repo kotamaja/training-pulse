@@ -1,8 +1,10 @@
-import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
-import { parseOrThrow } from '../../api/parse-or-throw';
+import {HttpClient, HttpHeaders} from '@angular/common/http';
+import {inject, Injectable} from '@angular/core';
+import {firstValueFrom} from 'rxjs';
+import {parseOrThrow} from '../../api/parse-or-throw';
 import {
+  AuthLoginResponse,
+  authLoginResponseSchema,
   AuthSession,
   authSessionSchema,
   LoginRequest,
@@ -14,36 +16,24 @@ import {
 export class AuthApiService {
   private readonly http = inject(HttpClient);
 
-  async login(payload: LoginRequest): Promise<AuthSession> {
+  async login(payload: LoginRequest): Promise<AuthLoginResponse> {
     const response = await firstValueFrom(
       this.http.post<unknown>(
-        '/api/v1/auth/login',
-        payload,
-        { withCredentials: true },
+        '/api/v1/auth/login', payload, {withCredentials: true},
       ),
     );
 
-    return parseOrThrow(authSessionSchema, response);
+    return parseOrThrow(authLoginResponseSchema, response);
   }
 
-  async me(): Promise<AuthSession> {
+  async me(token: string): Promise<AuthSession> {
     const response = await firstValueFrom(
       this.http.get<unknown>(
         '/api/v1/me',
-        { withCredentials: true },
       ),
     );
 
     return parseOrThrow(authSessionSchema, response);
   }
 
-  async logout(): Promise<void> {
-    await firstValueFrom(
-      this.http.post<void>(
-        '/api/v1/auth/logout',
-        {},
-        { withCredentials: true },
-      ),
-    );
-  }
 }

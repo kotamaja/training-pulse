@@ -1,6 +1,8 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
-import { AuthSession } from '../model/auth-session.model';
-import { AuthApiService } from './auth-api.service';
+import {computed, inject, Injectable, signal} from '@angular/core';
+import {AuthSession} from '../model/auth-session.model';
+import {AuthApiService} from './auth-api.service';
+
+const AUTH_TOKEN_STORAGE_KEY = 'trainingpulse.auth.token';
 
 @Injectable({
   providedIn: 'root',
@@ -8,6 +10,7 @@ import { AuthApiService } from './auth-api.service';
 export class AuthSessionService {
   private readonly authApi = inject(AuthApiService);
 
+  private readonly tokenSignal = signal<string | null>(null);
   private readonly sessionSignal = signal<AuthSession | null>(null);
   private readonly initializedSignal = signal(false);
   private readonly loadingSignal = signal(false);
@@ -15,6 +18,7 @@ export class AuthSessionService {
 
   private initializationPromise: Promise<void> | null = null;
 
+  readonly token = this.tokenSignal.asReadonly();
   readonly session = this.sessionSignal.asReadonly();
   readonly initialized = this.initializedSignal.asReadonly();
   readonly loading = this.loadingSignal.asReadonly();
@@ -22,7 +26,7 @@ export class AuthSessionService {
 
   readonly user = computed(() => this.sessionSignal()?.user ?? null);
   readonly athlete = computed(() => this.sessionSignal()?.athlete ?? null);
-  readonly isAuthenticated = computed(() => this.sessionSignal() !== null);
+  readonly isAuthenticated = computed(() => this.tokenSignal() !== null && this.sessionSignal() !== null,);
   readonly roles = computed(() => this.sessionSignal()?.user.roles ?? []);
 
   hasRole(role: string): boolean {
@@ -51,13 +55,24 @@ export class AuthSessionService {
     this.loadingSignal.set(true);
     this.errorSignal.set(null);
 
+    const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+
+    if (token === null || token === '') {
+      this.clearSessionState();
+      this.initializedSignal.set(true);
+      this.loadingSignal.set(false);
+
+      return;
+    }
+
+    this.tokenSignal.set(token);
+
     try {
-      const session = await this.authApi.me();
-
+      const session = await this.authApi.me(token);
       this.sessionSignal.set(session);
-    } catch  {
-
-      this.sessionSignal.set(null);
+    } catch {
+      this.clearStoredToken();
+      this.clearSessionState();
     } finally {
       this.initializedSignal.set(true);
       this.loadingSignal.set(false);
@@ -69,12 +84,16 @@ export class AuthSessionService {
     this.errorSignal.set(null);
 
     try {
-      const session = await this.authApi.login({ email, password });
+      const response = await this.authApi.login({ email, password });
 
-      this.sessionSignal.set(session);
+      localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, response.token);
+
+      this.tokenSignal.set(response.token);
+      this.sessionSignal.set(response.session);
       this.initializedSignal.set(true);
     } catch {
-      this.sessionSignal.set(null);
+      this.clearStoredToken();
+      this.clearSessionState();
       this.initializedSignal.set(true);
       this.errorSignal.set('Email ou mot de passe incorrect.');
     } finally {
@@ -82,20 +101,23 @@ export class AuthSessionService {
     }
   }
 
-  async logout(): Promise<void> {
-    this.loadingSignal.set(true);
+  logout(): void {
+    this.clearStoredToken();
+    this.clearSessionState();
+    this.initializedSignal.set(true);
     this.errorSignal.set(null);
-
-    try {
-      await this.authApi.logout();
-    } finally {
-      this.sessionSignal.set(null);
-      this.initializedSignal.set(true);
-      this.loadingSignal.set(false);
-    }
   }
 
   clearError(): void {
     this.errorSignal.set(null);
+  }
+
+  private clearStoredToken(): void {
+    localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+  }
+
+  private clearSessionState(): void {
+    this.tokenSignal.set(null);
+    this.sessionSignal.set(null);
   }
 }

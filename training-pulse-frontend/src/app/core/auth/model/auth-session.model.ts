@@ -9,6 +9,15 @@ export const authSessionSchema = z.object({
 
 export type AuthSession = z.infer<typeof authSessionSchema>;
 
+
+export const authLoginResponseSchema = z.object({
+  token: z.string().min(1),
+  session: authSessionSchema,
+});
+
+export type AuthLoginResponse = z.infer<typeof authLoginResponseSchema>;
+
+
 export const loginRequestSchema = z.object({
   email: z.email(),
   password: z.string().min(1),
