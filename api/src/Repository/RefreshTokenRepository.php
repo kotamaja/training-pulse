@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\RefreshToken;
+use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -21,5 +22,16 @@ class RefreshTokenRepository extends ServiceEntityRepository
         return $this->findOneBy([
             'tokenHash' => $tokenHash,
         ]);
+    }
+
+    public function purgeExpiredOrRevokedBefore(DateTimeImmutable $threshold): int
+    {
+        return $this->createQueryBuilder('rt')
+            ->delete()
+            ->where('rt.expiresAt < :threshold')
+            ->orWhere('rt.revokedAt IS NOT NULL AND rt.revokedAt < :threshold')
+            ->setParameter('threshold', $threshold)
+            ->getQuery()
+            ->execute();
     }
 }

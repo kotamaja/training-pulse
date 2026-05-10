@@ -17,6 +17,7 @@ export class AuthSessionService {
   private readonly errorSignal = signal<string | null>(null);
 
   private initializationPromise: Promise<void> | null = null;
+  private refreshPromise: Promise<string> | null = null;
 
   readonly token = this.tokenSignal.asReadonly();
   readonly session = this.sessionSignal.asReadonly();
@@ -108,6 +109,20 @@ export class AuthSessionService {
     this.tokenSignal.set(response.token);
 
     return response.token;
+  }
+
+  async refreshAccessTokenOnce(): Promise<string> {
+    if (this.refreshPromise !== null) {
+      return this.refreshPromise;
+    }
+
+    this.refreshPromise = this.refreshAccessToken();
+
+    try {
+      return await this.refreshPromise;
+    } finally {
+      this.refreshPromise = null;
+    }
   }
 
   async logout(): Promise<void> {

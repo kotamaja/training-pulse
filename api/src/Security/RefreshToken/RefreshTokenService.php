@@ -60,6 +60,16 @@ final readonly class RefreshTokenService
         return $refreshToken;
     }
 
+    public function rotate(RefreshToken $refreshToken): IssuedRefreshToken
+    {
+        $refreshToken->revoke();
+
+        return $this->issue(
+            user: $refreshToken->getUser(),
+            mode: $refreshToken->getMode(),
+        );
+    }
+
     public function revoke(RefreshToken $refreshToken): void
     {
         $refreshToken->revoke();

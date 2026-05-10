@@ -23,7 +23,7 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => error);
       }
 
-      return from(authSession.refreshAccessToken()).pipe(
+      return from(authSession.refreshAccessTokenOnce()).pipe(
         switchMap((newToken) => {
           const retriedRequest = req.clone({
             setHeaders: {
@@ -34,8 +34,9 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
           return next(retriedRequest);
         }),
         catchError((refreshError: unknown) => {
-          authSession.logout();
+          void authSession.logout().finally(() => {
           void router.navigateByUrl('/login');
+          });
 
           return throwError(() => refreshError);
         }),
