@@ -108,6 +108,13 @@ export class AuthSessionService {
     this.errorSignal.set(null);
   }
 
+  expireSession(): void {
+    this.clearStoredToken();
+    this.clearSessionState();
+    this.initializedSignal.set(true);
+    this.errorSignal.set(null);
+  }
+
   clearError(): void {
     this.errorSignal.set(null);
   }
