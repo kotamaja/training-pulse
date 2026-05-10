@@ -50,4 +50,16 @@ export class AuthApiService {
     return parseOrThrow(refreshTokenResponseSchema, response);
   }
 
+  async logout(): Promise<void> {
+    await firstValueFrom(
+      this.http.post<void>(
+        '/api/v1/auth/logout',
+        {},
+        {
+          withCredentials: true,
+        },
+      ),
+    );
+  }
+
 }

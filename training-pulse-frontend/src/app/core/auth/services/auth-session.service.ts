@@ -110,11 +110,15 @@ export class AuthSessionService {
     return response.token;
   }
 
-  logout(): void {
-    this.clearStoredToken();
-    this.clearSessionState();
-    this.initializedSignal.set(true);
-    this.errorSignal.set(null);
+  async logout(): Promise<void> {
+    try {
+      await this.authApi.logout();
+    } finally {
+      this.clearStoredToken();
+      this.clearSessionState();
+      this.initializedSignal.set(true);
+      this.errorSignal.set(null);
+    }
   }
 
   expireSession(): void {

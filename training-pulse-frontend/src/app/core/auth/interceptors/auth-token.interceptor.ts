@@ -7,7 +7,11 @@ export const authTokenInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
-  if (req.url === '/api/v1/auth/login' || req.url === '/api/v1/auth/refresh') {
+  if (
+    req.url === '/api/v1/auth/login' ||
+    req.url === '/api/v1/auth/refresh' ||
+    req.url === '/api/v1/auth/logout'
+  ) {
     return next(req);
   }
 

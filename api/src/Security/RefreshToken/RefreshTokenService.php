@@ -65,6 +65,20 @@ final readonly class RefreshTokenService
         $refreshToken->revoke();
     }
 
+
+    public function revokePlainToken(string $plainToken): void
+    {
+        $tokenHash = $this->hashPlainToken($plainToken);
+
+        $refreshToken = $this->refreshTokenRepository->findOneByTokenHash($tokenHash);
+
+        if (!$refreshToken instanceof RefreshToken) {
+            return;
+        }
+
+        $refreshToken->revoke();
+    }
+
     public function hashPlainToken(string $plainToken): string
     {
         return hash('sha256', $plainToken);

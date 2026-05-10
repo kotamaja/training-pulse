@@ -16,7 +16,8 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
 
       const isAuthRequest =
         req.url === '/api/v1/auth/login' ||
-        req.url === '/api/v1/auth/refresh';
+        req.url === '/api/v1/auth/refresh' ||
+        req.url === '/api/v1/auth/logout';
 
       if (isAuthRequest) {
         return throwError(() => error);
