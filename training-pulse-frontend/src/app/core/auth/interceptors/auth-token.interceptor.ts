@@ -1,4 +1,4 @@
-import { HttpInterceptorFn } from '@angular/common/http';
+import {HttpInterceptorFn} from '@angular/common/http';
 
 const AUTH_TOKEN_STORAGE_KEY = 'trainingpulse.auth.token';
 
@@ -7,7 +7,7 @@ export const authTokenInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
-  if (req.url === '/api/v1/auth/login') {
+  if (req.url === '/api/v1/auth/login' || req.url === '/api/v1/auth/refresh') {
     return next(req);
   }
 

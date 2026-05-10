@@ -84,7 +84,7 @@ export class AuthSessionService {
     this.errorSignal.set(null);
 
     try {
-      const response = await this.authApi.login({ email, password });
+      const response = await this.authApi.login({email, password, mode: 'web'});
 
       localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, response.token);
 
@@ -99,6 +99,15 @@ export class AuthSessionService {
     } finally {
       this.loadingSignal.set(false);
     }
+  }
+
+  async refreshAccessToken(): Promise<string> {
+    const response = await this.authApi.refresh();
+
+    localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, response.token);
+    this.tokenSignal.set(response.token);
+
+    return response.token;
   }
 
   logout(): void {

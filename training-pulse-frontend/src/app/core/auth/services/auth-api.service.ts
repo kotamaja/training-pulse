@@ -7,7 +7,7 @@ import {
   authLoginResponseSchema,
   AuthSession,
   authSessionSchema,
-  LoginRequest,
+  LoginRequest, RefreshTokenResponse, refreshTokenResponseSchema,
 } from '../model/auth-session.model';
 
 @Injectable({
@@ -34,6 +34,20 @@ export class AuthApiService {
     );
 
     return parseOrThrow(authSessionSchema, response);
+  }
+
+  async refresh(): Promise<RefreshTokenResponse> {
+    const response = await firstValueFrom(
+      this.http.post<unknown>(
+        '/api/v1/auth/refresh',
+        {},
+        {
+          withCredentials: true,
+        },
+      ),
+    );
+
+    return parseOrThrow(refreshTokenResponseSchema, response);
   }
 
 }
