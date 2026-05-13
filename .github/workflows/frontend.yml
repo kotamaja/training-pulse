@@ -14,7 +14,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: frontend-ng
+        working-directory: training-pulse-frontend
 
     steps:
       - name: Checkout repository
