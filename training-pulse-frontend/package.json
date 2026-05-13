@@ -7,6 +7,7 @@
     "build": "ng build",
     "build:ci": "ng build",
     "watch": "ng build --watch --configuration development",
+    "audit:ci": "npm audit --audit-level=high",
     "test": "ng test"
   },
   "private": true,

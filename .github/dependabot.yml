@@ -1,0 +1,26 @@
+version: 2
+
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Europe/Zurich"
+
+  - package-ecosystem: "npm"
+    directory: "/training-pulse-frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:15"
+      timezone: "Europe/Zurich"
+
+  - package-ecosystem: "composer"
+    directory: "/api"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:30"
+      timezone: "Europe/Zurich"
