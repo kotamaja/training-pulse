@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /var/www
+
+echo "==> Validating Composer files"
+composer validate --strict
+
+echo
+echo "==> Auditing all dependencies, including dev dependencies"
+composer audit
+
+echo
+echo "==> Auditing production dependencies only"
+composer audit --no-dev

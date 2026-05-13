@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /var/www
+
+if [ "$#" -lt 1 ]; then
+  echo "Usage: composer-require vendor/package[:version]"
+  exit 1
+fi
+
+echo "==> Requiring production dependency: $*"
+
+composer require "$@" \
+  --no-interaction \
+  --prefer-dist
+
+echo
+echo "==> Validating Composer files"
+composer validate --strict
+
+echo
+echo "==> Auditing dependencies"
+composer audit
+
+echo
+echo "==> Showing why the package is installed"
+for package in "$@"; do
+  composer why "${package%%:*}" || true
+done

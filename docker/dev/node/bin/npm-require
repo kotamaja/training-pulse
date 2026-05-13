@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /app
+
+if [ "$#" -lt 1 ]; then
+  echo "Usage:"
+  echo "  npm-require package[@version]"
+  echo
+  echo "Example:"
+  echo "  npm-require zod"
+  exit 1
+fi
+
+npm install "$@"
+
+echo
+echo "Running audit after dependency installation..."
+echo
+
+npm audit

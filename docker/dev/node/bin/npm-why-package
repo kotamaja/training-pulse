@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /app
+
+if [ "$#" -ne 1 ]; then
+  echo "Usage:"
+  echo "  npm-why-package package"
+  echo
+  echo "Example:"
+  echo "  npm-why-package fast-uri"
+  exit 1
+fi
+
+PACKAGE="$1"
+
+echo
+echo "Why is $PACKAGE installed?"
+echo "=========================="
+npm explain "$PACKAGE"
+
+echo
+echo "Package tree entry"
+echo "=================="
+npm ls "$PACKAGE" || true

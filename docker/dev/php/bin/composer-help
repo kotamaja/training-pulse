@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cat <<'EOF'
+Composer helper commands available in this container
+===================================================
+
+composer-help
+  Lists the available Composer helper commands.
+
+composer-validate
+  Validates composer.json and composer.lock with:
+    composer validate --strict
+
+composer-install-dev
+  Installs dependencies for development using composer.lock.
+  Includes require and require-dev dependencies.
+  Typical usage after cloning the project or switching branches.
+
+composer-audit
+  Runs Composer security audits.
+  Audits both:
+    - all dependencies, including dev dependencies
+    - production dependencies only with --no-dev
+
+composer-security-check
+  Runs a broader dependency/security check:
+    - Composer version
+    - PHP version
+    - composer validate --strict
+    - composer check-platform-reqs
+    - composer audit
+    - composer audit --no-dev
+    - composer show --direct
+    - composer outdated --direct
+
+composer-outdated
+  Shows outdated direct dependencies.
+  Also checks common Symfony project namespaces:
+    - symfony/*
+    - doctrine/*
+    - api-platform/*
+
+composer-require vendor/package[:version]
+  Adds a production dependency.
+  Runs validation and audit afterwards.
+  Example:
+    composer-require lexik/jwt-authentication-bundle
+
+composer-require-dev vendor/package[:version]
+  Adds a development dependency.
+  Runs validation and audit afterwards.
+  Example:
+    composer-require-dev phpstan/phpstan
+
+composer-update-safe vendor/package [vendor/package ...]
+  Updates selected packages only.
+  Refuses to run a global composer update without explicit package names.
+  Uses --with-all-dependencies.
+  Example:
+    composer-update-safe symfony/security-bundle
+
+composer-update-patch
+  Updates dependencies with Composer's --patch-only option.
+  Useful for conservative maintenance updates.
+  Always review composer.lock afterwards.
+
+composer-why-package vendor/package
+  Explains why a package is installed and shows package details.
+  Example:
+    composer-why-package psr/log
+
+composer-install-prod-check
+  Checks that production dependencies can be installed.
+  Runs composer install --no-dev and composer audit --no-dev.
+
+  Warning:
+    In a development container, this may remove dev dependencies from vendor/.
+    Prefer running it in CI or in a temporary container.
+
+Recommended daily workflow
+==========================
+
+After cloning the project:
+  composer-install-dev
+
+Before committing dependency changes:
+  composer-security-check
+
+Add a production dependency:
+  composer-require vendor/package
+
+Add a development dependency:
+  composer-require-dev vendor/package
+
+Update a package for security:
+  composer-update-safe vendor/package
+
+Check what is outdated:
+  composer-outdated
+
+Important Composer rules
+========================
+
+Use composer install for normal work, CI and Docker builds.
+
+Use composer update only when you intentionally want to change dependency versions.
+
+Do not run a global composer update casually.
+
+Always review changes in:
+  composer.json
+  composer.lock
+EOF

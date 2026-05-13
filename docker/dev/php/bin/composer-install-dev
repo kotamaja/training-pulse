@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /var/www
+
+echo "==> Installing dependencies for development"
+
+composer install \
+  --no-interaction \
+  --prefer-dist \
+  --no-progress
+
+echo
+echo "==> Running Composer audit"
+composer audit

@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /app
+
+if [ ! -f package.json ]; then
+  echo "package.json not found in /app"
+  exit 1
+fi
+
+if [ ! -f package-lock.json ]; then
+  echo "package-lock.json not found."
+  echo "npm ci requires an existing package-lock.json."
+  exit 1
+fi
+
+npm ci

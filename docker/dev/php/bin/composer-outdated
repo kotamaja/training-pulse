@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /var/www
+
+echo "==> Direct outdated dependencies"
+composer outdated --direct
+
+echo
+echo "==> Symfony outdated dependencies"
+composer outdated "symfony/*" || true
+
+echo
+echo "==> Doctrine outdated dependencies"
+composer outdated "doctrine/*" || true
+
+echo
+echo "==> API Platform outdated dependencies"
+composer outdated "api-platform/*" || true

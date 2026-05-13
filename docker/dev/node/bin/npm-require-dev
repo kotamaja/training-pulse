@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /app
+
+if [ "$#" -lt 1 ]; then
+  echo "Usage:"
+  echo "  npm-require-dev package[@version]"
+  echo
+  echo "Example:"
+  echo "  npm-require-dev eslint"
+  exit 1
+fi
+
+npm install --save-dev "$@"
+
+echo
+echo "Running audit after dev dependency installation..."
+echo
+
+npm audit

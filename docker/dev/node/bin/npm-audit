@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /app
+
+if [ ! -f package-lock.json ]; then
+  echo "package-lock.json not found."
+  echo "npm audit is much more reliable with a lockfile."
+  exit 1
+fi
+
+echo
+echo "Running full audit, including dev dependencies..."
+echo
+
+npm audit
+
+echo
+echo "Running production-only audit, omitting dev dependencies..."
+echo
+
+npm audit --omit=dev

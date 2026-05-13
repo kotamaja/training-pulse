@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /app
+
+echo
+echo "Node version"
+echo "============"
+node --version
+
+echo
+echo "npm version"
+echo "==========="
+npm --version
+
+echo
+echo "Project files"
+echo "============="
+test -f package.json && echo "package.json found" || { echo "package.json missing"; exit 1; }
+test -f package-lock.json && echo "package-lock.json found" || { echo "package-lock.json missing"; exit 1; }
+
+echo
+echo "Installed dependency tree check"
+echo "==============================="
+npm ls --depth=0 || true
+
+echo
+echo "Full npm audit"
+echo "=============="
+npm audit
+
+echo
+echo "Production-only npm audit"
+echo "========================="
+npm audit --omit=dev
+
+echo
+echo "Outdated direct dependencies"
+echo "============================"
+npm outdated --depth=0 || true
+
+echo
+echo "Angular CLI version"
+echo "==================="
+if [ -x ./node_modules/.bin/ng ]; then
+  ./node_modules/.bin/ng version
+else
+  echo "Angular CLI not installed locally."
+fi

@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /var/www
+
+echo "==> Composer version"
+composer --version
+
+echo
+echo "==> PHP version"
+php -v
+
+echo
+echo "==> Validating Composer files"
+composer validate --strict
+
+echo
+echo "==> Checking platform requirements"
+composer check-platform-reqs
+
+echo
+echo "==> Auditing all dependencies"
+composer audit
+
+echo
+echo "==> Auditing production dependencies only"
+composer audit --no-dev
+
+echo
+echo "==> Direct dependencies"
+composer show --direct
+
+echo
+echo "==> Direct outdated dependencies"
+composer outdated --direct || true

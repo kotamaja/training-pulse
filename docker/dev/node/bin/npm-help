@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cat <<'EOF'
+npm helper commands available in this container
+==============================================
+
+npm-help
+  Lists the available npm helper commands.
+
+npm-ci-dev
+  Installs dependencies from package-lock.json using npm ci.
+  Recommended after cloning the project or switching branches.
+  Removes node_modules before reinstalling.
+
+npm-install-dev
+  Runs npm install.
+  Useful when you intentionally changed package.json and want npm to update package-lock.json.
+
+npm-audit
+  Runs npm audit.
+  Also runs a production-only audit with:
+    npm audit --omit=dev
+
+npm-security-check
+  Runs a broader dependency/security check:
+    - Node version
+    - npm version
+    - package-lock presence
+    - npm ci dry checks where possible
+    - npm audit
+    - npm audit --omit=dev
+    - npm outdated
+
+npm-outdated
+  Shows outdated dependencies.
+
+npm-require package[@version]
+  Adds a production dependency.
+  Example:
+    npm-require zod
+
+npm-require-dev package[@version]
+  Adds a development dependency.
+  Example:
+    npm-require-dev eslint
+
+npm-update-safe package [package ...]
+  Updates selected packages only.
+  Refuses to run a global npm update without package names.
+  Example:
+    npm-update-safe @angular/core @angular/cli
+
+npm-why-package package
+  Explains why a package is installed.
+  Internally uses:
+    npm explain package
+
+ng
+  Runs the local Angular CLI from node_modules/.bin/ng.
+
+Recommended daily workflow
+==========================
+
+After cloning the project:
+  npm-ci-dev
+
+Before committing dependency changes:
+  npm-security-check
+
+Add a production dependency:
+  npm-require package
+
+Add a development dependency:
+  npm-require-dev package
+
+Update selected packages:
+  npm-update-safe package
+
+Check outdated dependencies:
+  npm-outdated
+
+Important npm rules
+===================
+
+Use npm ci for reproducible installs based on package-lock.json.
+
+Use npm install when you intentionally want to modify package-lock.json.
+
+Avoid global npm update.
+
+Always review changes in:
+  package.json
+  package-lock.json
+
+For Angular major upgrades, prefer:
+  ng update @angular/core @angular/cli
+EOF

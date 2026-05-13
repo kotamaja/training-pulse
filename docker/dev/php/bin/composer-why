@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /var/www
+
+if [ "$#" -ne 1 ]; then
+  echo "Usage: composer-why-package vendor/package"
+  exit 1
+fi
+
+PACKAGE="$1"
+
+echo "==> Why is $PACKAGE installed?"
+composer why "$PACKAGE" -t || true
+
+echo
+echo "==> Package details"
+composer show "$PACKAGE" --all || true

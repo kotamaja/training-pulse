@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /var/www
+
+if [ "$#" -lt 1 ]; then
+  echo "Usage: composer-update-safe vendor/package [vendor/package ...]"
+  echo
+  echo "This command intentionally refuses to run a global composer update."
+  echo "Use it for targeted updates only."
+  exit 1
+fi
+
+echo "==> Updating selected package(s): $*"
+
+composer update "$@" \
+  --with-all-dependencies \
+  --no-interaction \
+  --prefer-dist \
+  --no-progress
+
+echo
+echo "==> Validating Composer files"
+composer validate --strict
+
+echo
+echo "==> Auditing dependencies"
+composer audit
+
+echo
+echo "==> Showing direct outdated dependencies"
+composer outdated --direct || true

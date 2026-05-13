@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /var/www
+
+echo "==> Validating composer.json and composer.lock"
+
+composer validate --strict

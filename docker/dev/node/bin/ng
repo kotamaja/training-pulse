@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /app
+
+if [ ! -x ./node_modules/.bin/ng ]; then
+  echo "Angular CLI not found in ./node_modules/.bin/ng"
+  echo
+  echo "Install dependencies first:"
+  echo "  npm-ci-dev"
+  echo
+  echo "Or make sure @angular/cli is present in devDependencies."
+  exit 1
+fi
+
+exec ./node_modules/.bin/ng "$@"

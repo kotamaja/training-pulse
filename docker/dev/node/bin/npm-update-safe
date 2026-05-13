@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /app
+
+if [ "$#" -lt 1 ]; then
+  echo "Refusing to run a global npm update."
+  echo
+  echo "Usage:"
+  echo "  npm-update-safe package [package ...]"
+  echo
+  echo "Example:"
+  echo "  npm-update-safe @angular/core @angular/cli"
+  exit 1
+fi
+
+npm update "$@"
+
+echo
+echo "Running audit after targeted update..."
+echo
+
+npm audit
+
+echo
+echo "Remember to review:"
+echo "  git diff package.json"
+echo "  git diff package-lock.json"

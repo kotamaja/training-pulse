@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /app
+
+echo
+echo "Outdated direct dependencies"
+echo "============================"
+npm outdated --depth=0 || true
+
+echo
+echo "Angular-related outdated dependencies"
+echo "====================================="
+npm outdated '@angular/*' || true

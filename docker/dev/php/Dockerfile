@@ -1,4 +1,4 @@
-ARG PHP_VERSION=8.5
+ARG PHP_VERSION=8.4
 
 FROM mlocati/php-extension-installer AS php-extension-installer
 FROM composer:2 AS composer_bin
@@ -21,7 +21,16 @@ COPY --from=composer_bin /usr/bin/composer /usr/local/bin/composer
 RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 
 COPY docker/dev/php/zzz-custom.ini "$PHP_INI_DIR/conf.d/"
-# (si tu n’as pas les .ini en glob, laisse tes COPY un par un)
+
+
+COPY docker/dev/php/bin/ /usr/local/bin/
+RUN chmod +x /usr/local/bin/composer-*
+
+COPY docker/dev/php/docker-entrypoint-dev.sh /usr/local/bin/docker-entrypoint-dev
+RUN chmod +x /usr/local/bin/docker-entrypoint-dev
+
 
 EXPOSE 9000
 
+ENTRYPOINT ["docker-entrypoint-dev"]
+CMD ["php-fpm"]

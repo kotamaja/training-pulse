@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /var/www
+
+echo "==> Checking that production dependencies can be installed"
+
+composer install \
+  --no-dev \
+  --no-interaction \
+  --prefer-dist \
+  --no-progress \
+  --optimize-autoloader \
+  --classmap-authoritative
+
+echo
+echo "==> Auditing production dependencies"
+composer audit --no-dev
+
+echo
+echo "==> Checking platform requirements"
+composer check-platform-reqs

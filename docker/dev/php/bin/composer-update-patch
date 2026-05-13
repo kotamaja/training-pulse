@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /var/www
+
+echo "==> Updating dependencies with patch-only constraint"
+
+composer update \
+  --patch-only \
+  --with-all-dependencies \
+  --no-interaction \
+  --prefer-dist \
+  --no-progress
+
+echo
+echo "==> Validating Composer files"
+composer validate --strict
+
+echo
+echo "==> Auditing dependencies"
+composer audit

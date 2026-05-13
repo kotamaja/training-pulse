@@ -17,15 +17,20 @@ services:
   php:
     build:
       context: .
-      dockerfile: ./Dockerfile-dev
+      dockerfile: docker/dev/php/Dockerfile
+      args:
+        PHP_VERSION: "8.4"
     working_dir: /var/www
     volumes:
       - ./api:/var/www:delegated
-      - training-pulse_composer_cache_dev:/tmp/composer
+      - ./.docker-cache/composer:/tmp/composer
     environment:
-      DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql-dev:3306/${MYSQL_DATABASE}?serverVersion=${MYSQL_VERSION}
+
       COMPOSER_HOME: /tmp/composer
+      COMPOSER_CACHE_DIR: /tmp/composer/cache
       XDEBUG_MODE: ${XDEBUG_MODE:-off}
+
+      DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql-dev:3306/${MYSQL_DATABASE}?serverVersion=${MYSQL_VERSION}
 
       STRAVA_CLIENT_ID: ${STRAVA_CLIENT_ID}
       STRAVA_CLIENT_SECRET: ${STRAVA_CLIENT_SECRET}
@@ -36,6 +41,22 @@ services:
       JWT_PASSPHRASE: '${JWT_PASSPHRASE:?JWT_PASSPHRASE is required}'
 
     user: "${UID:-1000}:${GID:-1000}"
+
+  node:
+    build:
+      context: .
+      dockerfile: docker/dev/node/Dockerfile
+      args:
+        NODE_VERSION: 24-bookworm-slim
+    working_dir: /app
+    volumes:
+      - ./training-pulse-frontend:/app
+    ports:
+      - "4200:4200"
+    tty: true
+    stdin_open: true
+    command: bash
+
 
   nginx:
     image: nginx:1.27-alpine
@@ -50,5 +71,4 @@ services:
       - ./docker/dev/nginx/certs:/etc/nginx/certs:ro
 
 volumes:
-  training-pulse_composer_cache_dev:
   training-pulse-mysql-dev:
