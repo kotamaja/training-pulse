@@ -1,7 +1,7 @@
 services:
 
   mysql-dev:
-    image: mysql:8.0
+    image: mariadb:10.11
     ports:
       - "127.0.0.1:3306:3306"
     environment:
@@ -35,6 +35,7 @@ services:
       STRAVA_CLIENT_ID: ${STRAVA_CLIENT_ID}
       STRAVA_CLIENT_SECRET: ${STRAVA_CLIENT_SECRET}
       STRAVA_REDIRECT_URI: ${STRAVA_REDIRECT_URI}
+      STRAVA_ACTIVITY_SUMMARY_PER_PAGE: ${STRAVA_ACTIVITY_SUMMARY_PER_PAGE}
 
       JWT_SECRET_KEY: '%kernel.project_dir%/config/jwt/private.pem'
       JWT_PUBLIC_KEY: '%kernel.project_dir%/config/jwt/public.pem'

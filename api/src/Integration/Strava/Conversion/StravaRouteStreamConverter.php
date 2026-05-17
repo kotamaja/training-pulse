@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Integration\Strava;
+namespace App\Integration\Strava\Conversion;
 
 use App\Dto\TrainingActivity\TrainingActivityCreateDto;
 use App\Dto\TrainingActivity\TrainingActivityUpdateDto;
@@ -10,9 +10,10 @@ final readonly class StravaRouteStreamConverter
     /**
      * @param array<string, mixed> $streams
      */
-    public function fillCreateDto(array                     $streams,
-                                  TrainingActivityCreateDto $dto): void
+    public function fillCreateDto(array $streams, TrainingActivityCreateDto $dto): void
     {
+        $dto->streamsSyncedAt = new \DateTimeImmutable();
+
         $routeCoordinates = $this->toRouteCoordinatesOrNull($streams);
 
         if ($routeCoordinates === null) {
@@ -25,9 +26,10 @@ final readonly class StravaRouteStreamConverter
     /**
      * @param array<string, mixed> $streams
      */
-    public function fillUpdateDto(array                     $streams,
-                                  TrainingActivityUpdateDto $dto): void
+    public function fillUpdateDto(array $streams, TrainingActivityUpdateDto $dto): void
     {
+        $dto->setStreamsSyncedAt(new \DateTimeImmutable());
+
         $routeCoordinates = $this->toRouteCoordinatesOrNull($streams);
 
         if ($routeCoordinates === null) {

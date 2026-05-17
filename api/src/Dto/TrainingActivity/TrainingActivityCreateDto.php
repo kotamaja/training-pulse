@@ -85,4 +85,6 @@ final class TrainingActivityCreateDto
     public ?array $rawExternalDetail = null;
 
     public ?\DateTimeImmutable $syncedAt = null;
+
+    public ?\DateTimeImmutable $streamsSyncedAt = null;
 }

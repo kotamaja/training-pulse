@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Integration\Strava;
+namespace App\Integration\Strava\Conversion;
 
 use App\Enum\SportType;
 

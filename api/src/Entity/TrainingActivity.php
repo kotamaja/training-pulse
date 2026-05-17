@@ -181,6 +181,9 @@ class TrainingActivity
     #[ORM\Column(type: 'utc_datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    #[ORM\Column(type: 'utc_datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $streamsSyncedAt = null;
+
     public function __construct(
         Athlete            $athlete,
         ActivitySource     $source,
@@ -476,4 +479,22 @@ class TrainingActivity
     {
         $this->updatedAt = new \DateTimeImmutable();
     }
+
+    public function getStreamsSyncedAt(): ?\DateTimeImmutable
+    {
+        return $this->streamsSyncedAt;
+    }
+
+    public function setStreamsSyncedAt(?\DateTimeImmutable $streamsSyncedAt): void
+    {
+        $this->streamsSyncedAt = $streamsSyncedAt;
+        $this->touch();
+    }
+
+
+    public function hasStreams(): bool
+    {
+        return $this->streamsSyncedAt !== null;
+    }
+
 }

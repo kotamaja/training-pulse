@@ -110,6 +110,8 @@ final readonly class TrainingActivityWriteService implements TrainingActivityWri
         $activity->setRawExternalDetail($input->rawExternalDetail);
         $activity->setSyncedAt($input->syncedAt);
 
+        $activity->setStreamsSyncedAt($input->streamsSyncedAt);
+
         $this->entityManager->persist($activity);
 
         return $activity;
@@ -337,6 +339,15 @@ final readonly class TrainingActivityWriteService implements TrainingActivityWri
             if (!$this->sameRoute($trainingActivity->getRoute(), $route)) {
                 $trainingActivity->setRoute($route);
                 $changed = true;
+            }
+        }
+
+        if ($input->isStreamsSyncedAtProvided()) {
+            if (!$this->sameInstant($trainingActivity->getStreamsSyncedAt(), $input->getStreamsSyncedAt())) {
+                $trainingActivity->setStreamsSyncedAt($input->getStreamsSyncedAt());
+
+                // Je ne mettrais pas $changed = true ici.
+                // Comme syncedAt, c'est une info technique de synchronisation.
             }
         }
 

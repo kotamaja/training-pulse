@@ -11,6 +11,7 @@ parameters:
     app.strava.client_id: '%env(STRAVA_CLIENT_ID)%'
     app.strava.client_secret: '%env(STRAVA_CLIENT_SECRET)%'
     app.strava.redirect_url: '%env(STRAVA_REDIRECT_URI)%'
+    strava.activity_summary_per_page: '%env(int:STRAVA_ACTIVITY_SUMMARY_PER_PAGE)%'
 
 
 services:

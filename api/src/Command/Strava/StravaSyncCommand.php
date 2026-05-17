@@ -2,11 +2,9 @@
 
 namespace App\Command\Strava;
 
-use App\Entity\User;
-use App\Enum\ActivitySource;
-use App\Integration\Strava\StravaActivitySyncService;
-use App\Repository\AthleteExternalAccountRepository;
-use App\Repository\UserRepository;
+use App\Integration\Strava\Sync\StravaActivitySyncReport;
+use App\Integration\Strava\Sync\StravaActivitySyncService;
+use App\Integration\Strava\Sync\StravaStreamSyncMode;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -20,19 +18,23 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 final class StravaSyncCommand extends Command
 {
-    private const DEV_USER_EMAIL = 'dev@trainingpulse.local';
 
     public function __construct(
-        private readonly UserRepository $userRepository,
-        private readonly AthleteExternalAccountRepository $externalAccountRepository,
-        private readonly StravaActivitySyncService $syncService,
-    ) {
+        private readonly StravaCommandAccountResolver $accountResolver,
+        private readonly StravaActivitySyncService    $syncService,
+    )
+    {
         parent::__construct();
     }
 
     protected function configure(): void
     {
-        $this
+        $this->addOption(
+            'email',
+            null,
+            InputOption::VALUE_REQUIRED,
+            'TrainingPulse user email.',
+        )
             ->addOption(
                 'page',
                 null,
@@ -58,6 +60,24 @@ final class StravaSyncCommand extends Command
                 null,
                 InputOption::VALUE_REQUIRED,
                 'Only return activities before this date, format YYYY-MM-DD.',
+            )
+            ->addOption(
+                'all-pages',
+                null,
+                InputOption::VALUE_NONE,
+                'Synchronize all pages until Strava returns less than per-page activities.',
+            )->addOption(
+                'sleep-between-pages',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Seconds to sleep between pages when using --all-pages.',
+                0,
+            )->addOption(
+                'with-streams',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Stream synchronization mode: no, missing, always.',
+                StravaStreamSyncMode::Missing->value,
             );
     }
 
@@ -65,20 +85,28 @@ final class StravaSyncCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $page = max(1, (int) $input->getOption('page'));
-        $perPage = min(100, max(1, (int) $input->getOption('per-page')));
+        $email = $input->getOption('email');
+
+        if (!is_string($email) || trim($email) === '') {
+            $io->error('Missing required option --email.');
+
+            return Command::FAILURE;
+        }
+
+        $page = max(1, (int)$input->getOption('page'));
+        $perPage = min(200, max(1, (int)$input->getOption('per-page')));
 
         $after = $this->parseDateOption($input->getOption('after'), 'after');
         $before = $this->parseDateOption($input->getOption('before'), 'before');
 
-        $user = $this->findDevUser();
+        $allPages = (bool)$input->getOption('all-pages');
+        $sleepBetweenPages = max(0, (int)$input->getOption('sleep-between-pages'));
+
+        $streamSyncMode = $this->parseStreamSyncMode((string)$input->getOption('with-streams'));
+
+        $user = $this->accountResolver->resolveUserByEmail($email);
         $athlete = $user->requireAthlete();
-
-        $account = $this->externalAccountRepository->findOneForAthleteAndProvider(
-            athlete: $athlete,
-            provider: ActivitySource::Strava,
-        );
-
+        $account = $this->accountResolver->resolveStravaAccountByEmail($email);
         if ($account === null) {
             $io->error(sprintf(
                 'No Strava external account found for athlete "%s".',
@@ -94,28 +122,69 @@ final class StravaSyncCommand extends Command
             ['TrainingPulse user' => $user->getEmail()],
             ['TrainingPulse athlete' => $athlete->getDisplayName()],
             ['Strava account id' => $account->getProviderAccountId()],
-            ['Page' => (string) $page],
-            ['Per page' => (string) $perPage],
+            ['Page' => (string)$page],
+            ['Per page' => (string)$perPage],
             ['After' => $after?->format('Y-m-d') ?? 'n/a'],
             ['Before' => $before?->format('Y-m-d') ?? 'n/a'],
         );
 
-        $report = $this->syncService->syncAccount(
-            account: $account,
-            page: $page,
-            perPage: $perPage,
-            after: $after,
-            before: $before,
-        );
+        if (!$allPages) {
+            $report = $this->syncService->syncAccount(
+                account: $account,
+                page: $page,
+                perPage: $perPage,
+                after: $after,
+                before: $before,
+                streamSyncMode: $streamSyncMode,
+            );
+        } else {
+            $report = new StravaActivitySyncReport();
+
+            $currentPage = $page;
+
+            while (true) {
+                $io->section(sprintf('Synchronizing Strava page %d', $currentPage));
+
+                $pageReport = $this->syncService->syncAccount(
+                    account: $account,
+                    page: $currentPage,
+                    perPage: $perPage,
+                    after: $after,
+                    before: $before,
+                );
+
+                $report->merge($pageReport);
+
+                $io->definitionList(
+                    ['Page fetched' => (string)$pageReport->fetched],
+                    ['Page created' => (string)$pageReport->created],
+                    ['Page updated' => (string)$pageReport->updated],
+                    ['Page unchanged' => (string)$pageReport->unchanged],
+                    ['Page failed' => (string)$pageReport->failed],
+                );
+
+                if ($pageReport->fetched < $perPage) {
+                    break;
+                }
+
+                $currentPage++;
+
+                if ($sleepBetweenPages > 0) {
+                    sleep($sleepBetweenPages);
+                }
+            }
+        }
 
         $io->success('Strava synchronization completed.');
 
         $io->definitionList(
-            ['Fetched' => (string) $report->fetched],
-            ['Created' => (string) $report->created],
-            ['Updated' => (string) $report->updated],
-            ['Unchanged' => (string) $report->unchanged],
-            ['Failed' => (string) $report->failed],
+            ['Fetched' => (string)$report->fetched],
+            ['Created' => (string)$report->created],
+            ['Updated' => (string)$report->updated],
+            ['Unchanged' => (string)$report->unchanged],
+            ['Failed' => (string)$report->failed],
+            ['All pages' => $allPages ? 'yes' : 'no'],
+            ['Sleep between pages' => $allPages ? (string)$sleepBetweenPages . 's' : 'n/a'],
         );
 
         if ($report->errors !== []) {
@@ -131,21 +200,6 @@ final class StravaSyncCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function findDevUser(): User
-    {
-        $user = $this->userRepository->findOneBy([
-            'email' => self::DEV_USER_EMAIL,
-        ]);
-
-        if (!$user instanceof User) {
-            throw new \RuntimeException(sprintf(
-                'Dev user "%s" was not found.',
-                self::DEV_USER_EMAIL,
-            ));
-        }
-
-        return $user;
-    }
 
     private function parseDateOption(mixed $value, string $name): ?\DateTimeImmutable
     {
@@ -175,5 +229,22 @@ final class StravaSyncCommand extends Command
         }
 
         return $date;
+    }
+
+    private function parseStreamSyncMode(mixed $value): StravaStreamSyncMode
+    {
+        if (!is_string($value) || trim($value) === '') {
+            throw new \InvalidArgumentException('Option "--with-streams" must be a non-empty string.');
+        }
+
+        return match (strtolower(trim($value))) {
+            'no', 'none', 'false', '0' => StravaStreamSyncMode::No,
+            'missing' => StravaStreamSyncMode::Missing,
+            'always', 'yes', 'true', '1' => StravaStreamSyncMode::Always,
+            default => throw new \InvalidArgumentException(sprintf(
+                'Invalid --with-streams value "%s". Expected one of: no, missing, always.',
+                $value,
+            )),
+        };
     }
 }

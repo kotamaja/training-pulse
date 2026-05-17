@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Integration\Strava;
+namespace App\Integration\Strava\Api;
 
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\HttpClient\HttpClientInterface;

@@ -2,16 +2,15 @@
 
 namespace App\Command\Strava;
 
-use App\Entity\User;
 use App\Enum\ActivitySource;
 use App\Integration\Strava\StravaTokenExchangeClient;
-use App\Repository\UserRepository;
 use App\Write\AthleteExternalAccount\AthleteExternalAccountWriteServiceInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -21,34 +20,48 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 final class StravaExchangeCodeCommand extends Command
 {
-    private const DEV_USER_EMAIL = 'dev@trainingpulse.local';
 
     public function __construct(
-        private readonly StravaTokenExchangeClient $tokenExchangeClient,
+        private readonly StravaTokenExchangeClient                   $tokenExchangeClient,
         private readonly AthleteExternalAccountWriteServiceInterface $externalAccountWriteService,
-        private readonly UserRepository $userRepository,
-        private readonly EntityManagerInterface $entityManager,
-    ) {
+        private readonly StravaCommandAccountResolver                $accountResolver,
+        private readonly EntityManagerInterface                      $entityManager,
+    )
+    {
         parent::__construct();
     }
 
     protected function configure(): void
     {
-        $this->addArgument(
-            'code',
-            InputArgument::REQUIRED,
-            'The OAuth code returned by Strava.',
-        );
+        $this->addOption(
+            'email',
+            null,
+            InputOption::VALUE_REQUIRED,
+            'TrainingPulse user email.',
+        )
+            ->addArgument(
+                'code',
+                InputArgument::REQUIRED,
+                'The OAuth code returned by Strava.',
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
 
+        $email = $input->getOption('email');
+
+        if (!is_string($email) || trim($email) === '') {
+            $io->error('Missing required option --email.');
+
+            return Command::FAILURE;
+        }
+
         /** @var string $code */
         $code = $input->getArgument('code');
 
-        $user = $this->findDevUser();
+        $user = $this->accountResolver->resolveUserByEmail($email);
         $athlete = $user->requireAthlete();
 
         $tokenData = $this->tokenExchangeClient->exchangeCode($code);
@@ -93,21 +106,6 @@ final class StravaExchangeCodeCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function findDevUser(): User
-    {
-        $user = $this->userRepository->findOneBy([
-            'email' => self::DEV_USER_EMAIL,
-        ]);
-
-        if (!$user instanceof User) {
-            throw new \RuntimeException(sprintf(
-                'Dev user "%s" was not found.',
-                self::DEV_USER_EMAIL,
-            ));
-        }
-
-        return $user;
-    }
 
     /**
      * @param array<string, mixed> $data
@@ -118,7 +116,7 @@ final class StravaExchangeCodeCommand extends Command
         $value = $this->readPath($data, $path);
 
         if (is_int($value) || is_float($value)) {
-            return (string) $value;
+            return (string)$value;
         }
 
         if (!is_string($value) || trim($value) === '') {
@@ -141,7 +139,7 @@ final class StravaExchangeCodeCommand extends Command
         }
 
         if (is_string($value) && ctype_digit($value)) {
-            return (int) $value;
+            return (int)$value;
         }
 
         throw new \RuntimeException(sprintf('Missing or invalid Strava response value "%s".', $label));
@@ -180,7 +178,7 @@ final class StravaExchangeCodeCommand extends Command
         }
 
         $scopes = array_map('trim', explode(',', $scope));
-        $scopes = array_filter($scopes, static fn (string $scope): bool => $scope !== '');
+        $scopes = array_filter($scopes, static fn(string $scope): bool => $scope !== '');
         $scopes = array_values(array_unique($scopes));
         sort($scopes);
 

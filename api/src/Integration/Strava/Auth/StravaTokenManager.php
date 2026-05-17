@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Integration\Strava;
+namespace App\Integration\Strava\Auth;
 
 use App\Entity\AthleteExternalAccount;
 use App\Enum\ActivitySource;
+use App\Integration\Strava\Api\StravaTokenRefreshClient;
 use App\Write\Exception\BusinessRuleViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 

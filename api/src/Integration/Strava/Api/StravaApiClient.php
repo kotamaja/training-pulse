@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Integration\Strava;
+namespace App\Integration\Strava\Api;
 
 use DateTimeImmutable;
 use Symfony\Contracts\HttpClient\HttpClientInterface;

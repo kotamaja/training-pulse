@@ -73,6 +73,7 @@ CREATE TABLE training_activity
     synced_at            DATETIME         DEFAULT NULL,
     created_at           DATETIME           NOT NULL,
     updated_at           DATETIME         DEFAULT NULL,
+    streams_synced_at    DATETIME         DEFAULT NULL,
     athlete_id           INT                NOT NULL,
     INDEX idx_training_activity__athlete (athlete_id),
     INDEX idx_training_activity__athlete_started_at (athlete_id, started_at),

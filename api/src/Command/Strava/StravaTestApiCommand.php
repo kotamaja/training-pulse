@@ -2,15 +2,12 @@
 
 namespace App\Command\Strava;
 
-use App\Entity\User;
-use App\Enum\ActivitySource;
-use App\Integration\Strava\StravaApiClient;
-use App\Integration\Strava\StravaTokenManager;
-use App\Repository\AthleteExternalAccountRepository;
-use App\Repository\UserRepository;
+use App\Integration\Strava\Api\StravaApiClient;
+use App\Integration\Strava\Auth\StravaTokenManager;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -20,10 +17,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 final class StravaTestApiCommand extends Command
 {
-    private const DEV_USER_EMAIL = 'dev@trainingpulse.local';
 
-    public function __construct(private readonly UserRepository                   $userRepository,
-                                private readonly AthleteExternalAccountRepository $externalAccountRepository,
+    public function __construct(private readonly StravaCommandAccountResolver $accountResolver,
                                 private readonly StravaTokenManager               $tokenManager,
                                 private readonly StravaApiClient                  $stravaApiClient,
     )
@@ -31,17 +26,32 @@ final class StravaTestApiCommand extends Command
         parent::__construct();
     }
 
+    protected function configure(): void
+    {
+        $this->addOption(
+            'email',
+            null,
+            InputOption::VALUE_REQUIRED,
+            'TrainingPulse user email.',
+        );
+
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
 
-        $user = $this->findDevUser();
-        $athlete = $user->requireAthlete();
+        $email = $input->getOption('email');
 
-        $externalAccount = $this->externalAccountRepository->findOneForAthleteAndProvider(
-            athlete: $athlete,
-            provider: ActivitySource::Strava,
-        );
+        if (!is_string($email) || trim($email) === '') {
+            $io->error('Missing required option --email.');
+
+            return Command::FAILURE;
+        }
+
+        $user = $this->accountResolver->resolveUserByEmail($email);
+        $athlete = $user->requireAthlete();
+        $externalAccount = $this->accountResolver->resolveStravaAccountByEmail($email);
 
         if ($externalAccount === null) {
             $io->error(sprintf(
@@ -80,19 +90,5 @@ final class StravaTestApiCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function findDevUser(): User
-    {
-        $user = $this->userRepository->findOneBy([
-            'email' => self::DEV_USER_EMAIL,
-        ]);
 
-        if (!$user instanceof User) {
-            throw new \RuntimeException(sprintf(
-                'Dev user "%s" was not found.',
-                self::DEV_USER_EMAIL,
-            ));
-        }
-
-        return $user;
-    }
 }

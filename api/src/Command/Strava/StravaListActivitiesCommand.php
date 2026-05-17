@@ -2,13 +2,8 @@
 
 namespace App\Command\Strava;
 
-use App\Entity\User;
-use App\Enum\ActivitySource;
-use App\Integration\Strava\StravaApiClient;
-use App\Integration\Strava\StravaTokenManager;
-use App\Repository\AthleteExternalAccountRepository;
-use App\Repository\UserRepository;
-use RuntimeException;
+use App\Integration\Strava\Api\StravaApiClient;
+use App\Integration\Strava\Auth\StravaTokenManager;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -22,10 +17,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 final class StravaListActivitiesCommand extends Command
 {
-    private const DEV_USER_EMAIL = 'dev@trainingpulse.local';
 
-    public function __construct(private readonly UserRepository                   $userRepository,
-                                private readonly AthleteExternalAccountRepository $externalAccountRepository,
+    public function __construct(private readonly StravaCommandAccountResolver $accountResolver,
                                 private readonly StravaTokenManager               $tokenManager,
                                 private readonly StravaApiClient                  $stravaApiClient,
     )
@@ -35,7 +28,12 @@ final class StravaListActivitiesCommand extends Command
 
     protected function configure(): void
     {
-        $this
+        $this->addOption(
+            'email',
+            null,
+            InputOption::VALUE_REQUIRED,
+            'TrainingPulse user email.',
+        )
             ->addOption(
                 'page',
                 null,
@@ -68,21 +66,25 @@ final class StravaListActivitiesCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
+        $email = $input->getOption('email');
+
+        if (!is_string($email) || trim($email) === '') {
+            $io->error('Missing required option --email.');
+
+            return Command::FAILURE;
+        }
+
         $page = max(1, (int)$input->getOption('page'));
         $perPage = min(100, max(1, (int)$input->getOption('per-page')));
 
         $after = $this->parseDateOption($input->getOption('after'), 'after');
         $before = $this->parseDateOption($input->getOption('before'), 'before');
 
-        $user = $this->findDevUser();
+        $user = $this->accountResolver->resolveUserByEmail($email);
         $athlete = $user->requireAthlete();
+        $account = $this->accountResolver->resolveStravaAccountByEmail($email);
 
-        $externalAccount = $this->externalAccountRepository->findOneForAthleteAndProvider(
-            athlete: $athlete,
-            provider: ActivitySource::Strava,
-        );
-
-        if ($externalAccount === null) {
+        if ($account === null) {
             $io->error(sprintf(
                 'No Strava external account found for athlete "%s".',
                 $athlete->getDisplayName(),
@@ -91,7 +93,7 @@ final class StravaListActivitiesCommand extends Command
             return Command::FAILURE;
         }
 
-        $accessToken = $this->tokenManager->getValidAccessToken($externalAccount);
+        $accessToken = $this->tokenManager->getValidAccessToken($account);
 
         $activities = $this->stravaApiClient->listAthleteActivities(
             accessToken: $accessToken,
@@ -106,7 +108,7 @@ final class StravaListActivitiesCommand extends Command
         $io->definitionList(
             ['TrainingPulse user' => $user->getEmail()],
             ['TrainingPulse athlete' => $athlete->getDisplayName()],
-            ['Strava account id' => $externalAccount->getProviderAccountId()],
+            ['Strava account id' => $account->getProviderAccountId()],
             ['Page' => (string)$page],
             ['Per page' => (string)$perPage],
             ['Returned activities' => (string)count($activities)],
@@ -159,21 +161,6 @@ final class StravaListActivitiesCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function findDevUser(): User
-    {
-        $user = $this->userRepository->findOneBy([
-            'email' => self::DEV_USER_EMAIL,
-        ]);
-
-        if (!$user instanceof User) {
-            throw new RuntimeException(sprintf(
-                'Dev user "%s" was not found.',
-                self::DEV_USER_EMAIL,
-            ));
-        }
-
-        return $user;
-    }
 
     private function parseDateOption(mixed $value, string $name): ?\DateTimeImmutable
     {

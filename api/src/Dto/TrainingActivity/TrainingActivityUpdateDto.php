@@ -30,6 +30,8 @@ final class TrainingActivityUpdateDto
 
     private bool $routeCoordinatesProvided = false;
 
+    private bool $streamsSyncedAtProvided = false;
+
     #[Assert\Length(max: 512)]
     private ?string $name = null;
 
@@ -97,6 +99,8 @@ final class TrainingActivityUpdateDto
      * @var list<array{0: float, 1: float}>|null
      */
     private ?array $routeCoordinates = null;
+
+    private ?\DateTimeImmutable $streamsSyncedAt = null;
 
     public function setName(?string $name): void
     {
@@ -451,4 +455,21 @@ final class TrainingActivityUpdateDto
     {
         return $this->routeCoordinates;
     }
+
+    public function setStreamsSyncedAt(?\DateTimeImmutable $streamsSyncedAt): void
+    {
+        $this->streamsSyncedAtProvided = true;
+        $this->streamsSyncedAt = $streamsSyncedAt;
+    }
+
+    public function isStreamsSyncedAtProvided(): bool
+    {
+        return $this->streamsSyncedAtProvided;
+    }
+
+    public function getStreamsSyncedAt(): ?\DateTimeImmutable
+    {
+        return $this->streamsSyncedAt;
+    }
+
 }
